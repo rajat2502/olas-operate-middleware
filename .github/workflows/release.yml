@@ -37,6 +37,9 @@ jobs:
           poetry run python -m build
 
       - name: Publish olas-operate-middleware Framework to PyPI
+        # Fork-only: continue past PyPI failure so the dispatch step still runs
+        # without a real PYPI_API_TOKEN. Revert before merging upstream.
+        continue-on-error: true
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
@@ -71,7 +74,9 @@ jobs:
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
-          owner: valory-xyz
+          # Fork-only: target the fork instead of upstream. Revert before
+          # merging upstream.
+          owner: rajat2502
           repositories: olas-operate-app
 
       - name: Dispatch FE pin-bump workflow
@@ -85,4 +90,4 @@ jobs:
             --arg version "$VERSION" \
             --argjson branches "$BRANCHES" \
             '{event_type: "mw-released", client_payload: {version: $version, branches: $branches}}' \
-          | gh api repos/valory-xyz/olas-operate-app/dispatches --method POST --input -
+          | gh api repos/rajat2502/olas-operate-app/dispatches --method POST --input -
